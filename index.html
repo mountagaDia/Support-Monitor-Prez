@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALITA Support Monitor — Ministère de la Santé du Sénégal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy-mid: #112240;
+    --teal: #0d6e6e;
+    --teal-light: #1a9494;
+    --gold: #c9a84c;
+    --gold-light: #e8c87a;
+    --cream: #f5f0e8;
+    --white: #ffffff;
+    --text-muted: #8899aa;
+    --accent-red: #c0392b;
+    --accent-green: #1a6b4a;
+    --slide-bg: #0a1628;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #050e1a;
+    color: var(--white);
+    height: 100vh;
+    overflow: hidden;
+    cursor: default;
+  }
+
+  /* ── Slideshow Container ── */
+  .deck {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    pointer-events: none;
+    padding: 48px 72px;
+    overflow: hidden;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+  .slide.exit {
+    opacity: 0;
+    transform: translateY(-30px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+
+  /* ── Background variants ── */
+  .bg-cover {
+    background: linear-gradient(135deg, #050e1a 0%, #0a2040 50%, #082030 100%);
+  }
+  .bg-dark {
+    background: var(--navy);
+  }
+  .bg-teal {
+    background: linear-gradient(135deg, #051a1a 0%, #0a2e2e 100%);
+  }
+  .bg-section {
+    background: linear-gradient(160deg, #071830 0%, #0a1f3a 100%);
+  }
+  .bg-phase {
+    background: linear-gradient(160deg, #050e1a 0%, #0c1e35 100%);
+  }
+
+  /* ── Decorative Elements ── */
+  .deco-circle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .deco-line {
+    position: absolute;
+    background: var(--gold);
+    opacity: 0.15;
+    pointer-events: none;
+  }
+
+  /* ── Typography ── */
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    opacity: 0.9;
+  }
+
+  h1.display {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 72px;
+    font-weight: 300;
+    line-height: 1.05;
+    color: var(--white);
+    max-width: 800px;
+  }
+  h1.display span { color: var(--gold); }
+
+  h2.title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 400;
+    line-height: 1.1;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+  h2.title span { color: var(--gold); }
+
+  h3.sub-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--gold-light);
+    margin-bottom: 24px;
+  }
+
+  p.lead {
+    font-size: 17px;
+    font-weight: 300;
+    line-height: 1.8;
+    color: #c0d0e0;
+    max-width: 680px;
+  }
+
+  .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ── Gold Divider ── */
+  .divider {
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    margin: 20px 0;
+  }
+  .divider-center {
+    margin: 20px auto;
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    position: fixed;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    z-index: 100;
+    background: rgba(10,22,40,0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 40px;
+    padding: 10px 24px;
+  }
+  .nav button {
+    background: none;
+    border: none;
+    color: var(--gold);
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s, transform 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    padding: 4px 8px;
+  }
+  .nav button:hover { opacity: 1; transform: scale(1.15); }
+  .nav button:disabled { opacity: 0.2; cursor: default; transform: none; }
+  .slide-counter {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 60px;
+    text-align: center;
+  }
+
+  /* ── Progress bar ── */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold), var(--teal-light));
+    transition: width 0.4s ease;
+    z-index: 200;
+  }
+
+  /* ── Slide-specific layouts ── */
+
+  /* COVER */
+  .cover-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .cover-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--teal), var(--teal-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 28px;
+    font-size: 26px;
+  }
+  .cover-meta {
+    margin-top: 36px;
+    display: flex;
+    gap: 40px;
+  }
+  .cover-meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .cover-meta-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--white);
+  }
+  .cover-visual {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .cover-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(13,110,110,0.2);
+    border: 1px solid rgba(26,148,148,0.3);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 14px;
+    color: #7ee8e8;
+  }
+  .cover-badge-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--teal-light);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+  .cover-stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .stat-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .stat-lbl {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* FEATURES SLIDE */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .feature-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 22px;
+    transition: border-color 0.3s, background 0.3s, transform 0.3s;
+  }
+  .feature-card:hover {
+    border-color: rgba(201,168,76,0.3);
+    background: rgba(201,168,76,0.05);
+    transform: translateY(-3px);
+  }
+  .feature-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .feature-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+  .feature-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .feature-card.highlight {
+    border-color: rgba(201,168,76,0.4);
+    background: rgba(201,168,76,0.06);
+  }
+  .feature-card.highlight .feature-name { color: var(--gold-light); }
+
+  /* TWO COLUMN */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    width: 100%;
+    max-width: 1100px;
+    align-items: start;
+  }
+  .two-col-wide {
+    display: grid;
+    grid-template-columns: 5fr 4fr;
+    gap: 60px;
+    width: 100%;
+    max-width: 1100px;
+    align-items: center;
+  }
+
+  /* TECH ADVANTAGES */
+  .adv-list { display: flex; flex-direction: column; gap: 16px; }
+  .adv-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 20px;
+    background: rgba(255,255,255,0.03);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 10px 10px 0;
+    transition: background 0.3s;
+  }
+  .adv-item:hover { background: rgba(201,168,76,0.07); }
+  .adv-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .adv-text h4 { font-size: 14px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
+  .adv-text p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+  /* TECH VISUAL */
+  .tech-visual {
+    background: rgba(13,110,110,0.1);
+    border: 1px solid rgba(26,148,148,0.25);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+  }
+  .radar-anim {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    border: 2px solid rgba(26,148,148,0.4);
+    margin: 0 auto 24px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .radar-anim::before, .radar-anim::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(26,148,148,0.3);
+  }
+  .radar-anim::before { width: 70%; height: 70%; }
+  .radar-anim::after { width: 40%; height: 40%; background: rgba(13,110,110,0.3); }
+  .radar-sweep {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(rgba(26,148,148,0.5) 0deg, transparent 60deg, transparent 360deg);
+    animation: sweep 3s linear infinite;
+  }
+  @keyframes sweep {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .radar-center {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--teal-light);
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 0 20px var(--teal-light);
+  }
+  .tech-spec {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .tech-spec-item { text-align: center; }
+  .tech-spec-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--teal-light);
+  }
+  .tech-spec-lbl { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* HEALTHCARE USE CASES */
+  .use-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .use-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+  .use-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(201,168,76,0.25);
+  }
+  .use-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .use-card.c1::before { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+  .use-card.c2::before { background: linear-gradient(90deg, #0d6e6e, #1a9494); }
+  .use-card.c3::before { background: linear-gradient(90deg, #c9a84c, #e8c87a); }
+  .use-card.c4::before { background: linear-gradient(90deg, #1a6b4a, #27ae60); }
+  .use-card.c5::before { background: linear-gradient(90deg, #8e44ad, #9b59b6); }
+  .use-card.c6::before { background: linear-gradient(90deg, #2c3e50, #34495e); }
+
+  .use-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+  .use-title { font-size: 14px; font-weight: 600; color: var(--white); margin-bottom: 10px; }
+  .use-list { list-style: none; }
+  .use-list li {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 4px 0;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .use-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    font-size: 10px;
+    top: 5px;
+  }
+
+  /* PHASES */
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 32px;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .phase-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 80px;
+    font-weight: 300;
+    color: var(--gold);
+    opacity: 0.25;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .phase-info h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 38px;
+    font-weight: 400;
+    color: var(--white);
+  }
+  .phase-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    color: var(--gold);
+    margin-top: 6px;
+  }
+
+  .phase-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .phase-block {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .phase-block h4 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    font-family: 'DM Mono', monospace;
+  }
+  .phase-action {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    align-items: flex-start;
+  }
+  .phase-action-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--teal-light);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .phase-action p { font-size: 13px; color: #c0d0e0; line-height: 1.6; }
+  .phase-action p strong { color: var(--white); }
+
+  .warning-box {
+    background: rgba(192,57,43,0.1);
+    border: 1px solid rgba(192,57,43,0.3);
+    border-left: 3px solid var(--accent-red);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin-top: 16px;
+  }
+  .warning-box p { font-size: 12px; color: #e0a0a0; line-height: 1.6; }
+  .warning-box strong { color: #ff8080; }
+
+  .success-box {
+    background: rgba(26,107,74,0.1);
+    border: 1px solid rgba(26,107,74,0.3);
+    border-left: 3px solid var(--accent-green);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin-top: 12px;
+  }
+  .success-box p { font-size: 12px; color: #a0e0c0; line-height: 1.6; }
+  .success-box strong { color: #60d0a0; }
+
+  /* STAKEHOLDERS */
+  .stake-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .stake-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 18px;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .stake-card:hover {
+    border-color: rgba(201,168,76,0.3);
+    transform: translateY(-3px);
+  }
+  .stake-role {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .stake-name { font-size: 14px; font-weight: 600; color: var(--white); margin-bottom: 8px; }
+  .stake-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+  /* TIMELINE OVERVIEW */
+  .timeline-track {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    width: 100%;
+    max-width: 1100px;
+    margin-top: 16px;
+  }
+  .timeline-phase {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .timeline-bar {
+    height: 8px;
+    border-radius: 4px;
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .t1 .timeline-bar { background: #1a6b4a; }
+  .t2 .timeline-bar { background: #0d6e6e; }
+  .t3 .timeline-bar { background: #c9a84c; }
+  .t4 .timeline-bar { background: #8e44ad; }
+  .t5 .timeline-bar { background: #2c7be5; }
+  .t6 .timeline-bar { background: #c0392b; }
+
+  .timeline-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .timeline-label { font-size: 11px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
+  .timeline-dur {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .timeline-connector {
+    width: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 0px;
+    padding-top: 0;
+    align-self: flex-start;
+    padding-top: 1px;
+  }
+
+  /* CONCLUSION */
+  .conclusion-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .concl-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+  .concl-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(201,168,76,0.3);
+  }
+  .concl-icon { font-size: 38px; margin-bottom: 16px; display: block; }
+  .concl-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--gold-light);
+    margin-bottom: 10px;
+  }
+  .concl-text { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+
+  /* SLIDE header shared */
+  .slide-header {
+    text-align: center;
+    margin-bottom: 36px;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .slide-header.left { text-align: left; }
+
+  /* Contact / CTA */
+  .cta-box {
+    margin-top: 36px;
+    background: linear-gradient(135deg, rgba(13,110,110,0.2), rgba(10,22,40,0.8));
+    border: 1px solid rgba(26,148,148,0.3);
+    border-radius: 16px;
+    padding: 28px 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .cta-text h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+  .cta-text p { font-size: 13px; color: var(--text-muted); }
+  .cta-btn {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: var(--navy);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 28px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .cta-btn:hover { opacity: 0.9; transform: scale(1.03); }
+
+  /* Keyboard hint */
+  .kbd-hint {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    z-index: 100;
+    opacity: 0.5;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+  }
+  kbd {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-muted);
+  }
+
+  /* Watermark logo top-left */
+  .brand-mark {
+    position: fixed;
+    top: 20px;
+    left: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+    opacity: 0.6;
+  }
+  .brand-mark-dot {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--teal), var(--teal-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  .brand-mark-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: 1px;
+  }
+
+  /* Slide indicator dots */
+  .slide-dots {
+    position: fixed;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+  }
+  .slide-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s;
+  }
+  .slide-dot.active {
+    background: var(--gold);
+    transform: scale(1.4);
+  }
+
+  /* Section divider slide */
+  .section-divider {
+    text-align: center;
+  }
+  .section-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 140px;
+    font-weight: 200;
+    color: rgba(201,168,76,0.08);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -55%);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  /* Subtle grid overlay */
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* Pills */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(13,110,110,0.15);
+    border: 1px solid rgba(26,148,148,0.25);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--teal-light);
+    font-family: 'DM Mono', monospace;
+  }
+  .pill.gold {
+    background: rgba(201,168,76,0.12);
+    border-color: rgba(201,168,76,0.3);
+    color: var(--gold);
+  }
+  .pill.red {
+    background: rgba(192,57,43,0.12);
+    border-color: rgba(192,57,43,0.3);
+    color: #ff8080;
+  }
+
+  /* Overlap note */
+  .overlap-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* Hospital list */
+  .hospital-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .hospital-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: border-color 0.3s;
+  }
+  .hospital-item:hover { border-color: rgba(201,168,76,0.2); }
+  .hospital-tag {
+    font-size: 9px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .h-public { background: rgba(13,110,110,0.2); color: var(--teal-light); }
+  .h-private { background: rgba(201,168,76,0.15); color: var(--gold); }
+  .hospital-name { font-size: 13px; font-weight: 500; color: var(--white); }
+
+  /* SCALE slide */
+  .scale-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .scale-card {
+    border-radius: 14px;
+    padding: 22px;
+    border: 1px solid;
+  }
+  .scale-card.blue {
+    background: rgba(44,123,229,0.07);
+    border-color: rgba(44,123,229,0.2);
+  }
+  .scale-card.green {
+    background: rgba(26,107,74,0.07);
+    border-color: rgba(26,107,74,0.2);
+  }
+  .scale-card.gold {
+    background: rgba(201,168,76,0.07);
+    border-color: rgba(201,168,76,0.2);
+  }
+  .scale-card.purple {
+    background: rgba(142,68,173,0.07);
+    border-color: rgba(142,68,173,0.2);
+  }
+  .scale-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .scale-item {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 5px 0;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .scale-item::before {
+    content: '•';
+    position: absolute; left: 0;
+    color: var(--gold);
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="brand-mark">
+  <span class="brand-mark-name">ALITA</span>
+</div>
+<div class="kbd-hint">
+  <kbd>←</kbd> <kbd>→</kbd> naviguer
+</div>
+
+<!-- Slide dots -->
+<div class="slide-dots" id="slideDots"></div>
+
+<!-- Navigation -->
+<nav class="nav">
+  <button id="prevBtn" onclick="changeSlide(-1)" disabled>←</button>
+  <span class="slide-counter" id="slideCounter">1 / 12</span>
+  <button id="nextBtn" onclick="changeSlide(1)">→</button>
+</nav>
+
+<div class="deck" id="deck">
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 1 — COVER
+  ══════════════════════════════════════════ -->
+  <div class="slide bg-cover active" data-index="0">
+    <div class="bg-grid"></div>
+    <!-- decorative circles -->
+    <div class="deco-circle" style="width:500px;height:500px;border:1px solid rgba(201,168,76,0.06);top:-100px;right:-100px;"></div>
+    <div class="deco-circle" style="width:300px;height:300px;border:1px solid rgba(13,110,110,0.1);bottom:-60px;left:60px;"></div>
+
+    <div class="cover-content">
+      <div>
+        <div class="eyebrow">Présentation</div>
+        <h1 class="display">
+          ALITA<br><span>Support</span><br>Monitor
+        </h1>
+        <div class="divider"></div>
+        <p class="lead" style="font-size:15px;margin-bottom:0;">
+          Solution de surveillance intelligente par ondes millimétriques — sans caméra, respectueuse de la dignité des patients.
+        </p>
+        <div class="cover-meta">
+          <div class="cover-meta-item">
+            <span class="label">Destinataire</span>
+            <span class="cover-meta-value" style="font-size:16px;">Ministère de la Santé<br>et de l'Action Sociale<br>— Sénégal (MSAS)</span>
+          </div>
+        </div>
+      </div>
+      <div class="cover-visual">
+        <div class="cover-badge">
+          <div class="cover-badge-dot"></div>
+          Technologie Radar mmWave Active
+        </div>
+        <div class="cover-badge" style="background:rgba(201,168,76,0.12);border-color:rgba(201,168,76,0.25);color:#e8c87a;">
+          🔒 Zéro caméra · Privacy by design
+        </div>
+        <div class="cover-stat-grid">
+          <div class="stat-card">
+            <div class="stat-num">8</div>
+            <div class="stat-lbl">Fonctions cœur</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">4D</div>
+            <div class="stat-lbl">Détection simultanée</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">24/7</div>
+            <div class="stat-lbl">Surveillance continue</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">IA</div>
+            <div class="stat-lbl">Apprentissage continu</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 2 — PRODUCT OVERVIEW
+  ══════════════════════════════════════════ -->
+  <div class="slide bg-dark" data-index="1">
+    <div class="bg-grid"></div>
+    <div class="slide-header left" style="max-width:1100px;">
+      <div class="eyebrow">Le Produit</div>
+      <h2 class="title">Qu'est-ce que l'<span>ALITA Support Monitor</span>&thinsp;?</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="two-col-wide">
+      <div>
+        <p class="lead" style="margin-bottom:28px;">
+          Un capteur radar ambiant de nouvelle génération basé sur la technologie des <strong style="color:var(--white);">ondes millimétriques (mmWave)</strong>. Il surveille discrètement les personnes dans un espace — sans jamais utiliser de caméra — en exploitant des signaux radar invisibles et inoffensifs.
+        </p>
+        <div class="adv-list">
+          <div class="adv-item">
+            <span class="adv-icon">🎯</span>
+            <div class="adv-text">
+              <h4>Détection non intrusive</h4>
+              <p>Capteur discret, installable au mur ou au plafond. Fonctionne dans l'obscurité totale, à travers des tissus et couvertures.</p>
+            </div>
+          </div>
+          <div class="adv-item">
+            <span class="adv-icon">🤖</span>
+            <div class="adv-text">
+              <h4>Intelligence artificielle embarquée</h4>
+              <p>Les algorithmes de machine learning s'améliorent en continu, réduisant les fausses alertes et augmentant la précision.</p>
+            </div>
+          </div>
+          <div class="adv-item">
+            <span class="adv-icon">📱</span>
+            <div class="adv-text">
+              <h4>Multi-plateforme & tableau de bord centralisé</h4>
+              <p>Accessible sur iOS, Android et navigateur web. Vue temps réel de toutes les chambres simultanément.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tech-visual">
+        <div class="radar-anim">
+          <div class="radar-sweep"></div>
+          <div class="radar-center"></div>
+        </div>
+        <div class="eyebrow" style="margin:0 0 8px;">Technologie Active</div>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:16px;">
+          Le radar émet des ondes millimétriques qui rebondissent sur le corps humain. Le signal retourné est analysé en temps réel par l'IA.
+        </p>
+        <div class="tech-spec">
+          <div class="tech-spec-item">
+            <div class="tech-spec-val">4D</div>
+            <div class="tech-spec-lbl">Coordonnées</div>
+          </div>
+          <div class="tech-spec-item">
+            <div class="tech-spec-val">±1cm</div>
+            <div class="tech-spec-lbl">Précision</div>
+          </div>
+          <div class="tech-spec-item">
+            <div class="tech-spec-val">0 lux</div>
+            <div class="tech-spec-lbl">Luminosité min.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 3 — 8 FONCTIONS
+  ══════════════════════════════════════════ -->
+  <div class="slide bg-section" data-index="2">
+    <div class="bg-grid"></div>
+    <div class="slide-header" style="max-width:1100px;">
+      <div class="eyebrow">Fonctionnalités</div>
+      <h2 class="title">8 Fonctions <span>Cœur</span></h2>
+      <div class="divider divider-center"></div>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card highlight">
+        <span class="feature-icon">🚨</span>
+        <div class="feature-name">Détection de Chute</div>
+        <div class="feature-desc">Identification instantanée : chute, assis, incliné. Alerte soignant en temps réel.</div>
+      </div>
+      <div class="feature-card highlight">
+        <span class="feature-icon">💓</span>
+        <div class="feature-name">Signes Vitaux</div>
+        <div class="feature-desc">Mesure du rythme cardiaque et de la fréquence respiratoire sans contact.</div>
+      </div>
+      <div class="feature-card highlight">
+        <span class="feature-icon">📍</span>
+        <div class="feature-name">Suivi de Position</div>
+        <div class="feature-desc">Tracking de trajectoire précis et continu au sein de l'espace surveillé.</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🚪</span>
+        <div class="feature-name">Entrées / Sorties</div>
+        <div class="feature-desc">Surveillance du passage aux portes. Comptage de présence par zone.</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🛏️</span>
+        <div class="feature-name">Surveillance du Lit</div>
+        <div class="feature-desc">Alertes infirmières instantanées à chaque entrée ou sortie du lit.</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🌙</span>
+        <div class="feature-name">Qualité du Sommeil</div>
+        <div class="feature-desc">Analyse des phases de sommeil profond. Rapports nuit par nuit.</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">👥</span>
+        <div class="feature-name">Comptage de Personnes</div>
+        <div class="feature-desc">Détection et dénombrement en temps réel des individus présents.</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🖥️</span>
+        <div class="feature-name">Tableau de Bord</div>
+        <div class="feature-desc">Vue centralisée de toutes les chambres. Rapports : sommeil, respiration, sécurité.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 4 — AVANTAGES TECHNOLOGIQUES
+  ══════════════════════════════════════════ -->
+  <div class="slide bg-teal" data-index="3">
+    <div class="bg-grid"></div>
+    <div class="slide-header" style="max-width:1100px;">
+      <div class="eyebrow">Avantages Distinctifs</div>
+      <h2 class="title">Pourquoi les <span>Ondes Millimétriques</span>&thinsp;?</h2>
+      <div class="divider divider-center"></div>
+    </div>
+    <div class="two-col" style="align-items:start;max-width:1100px;">
+      <div class="adv-list">
+        <div class="adv-item">
+          <span class="adv-icon">🔒</span>
+          <div class="adv-text">
+            <h4>Confidentialité totale — Zéro caméra</h4>
+            <p>Aucune image, aucune vidéo. Le patient n'est représenté que par un signal radar. Compatible avec les valeurs culturelles et religieuses et les exigences de dignité en milieu hospitalier.</p>
+          </div>
+        </div>
+        <div class="adv-item">
+          <span class="adv-icon">🌑</span>
+          <div class="adv-text">
+            <h4>Fonctionne dans l'obscurité totale</h4>
+            <p>Aucune dépendance à la lumière. Surveillance nocturne identique à la surveillance diurne — idéal pour les services de réanimation et gériatrie.</p>
+          </div>
+        </div>
+        <div class="adv-item">
+          <span class="adv-icon">🏗️</span>
+          <div class="adv-text">
+            <h4>Double installation : mural ou plafond</h4>
+            <p>S'adapte à toutes les configurations de salle. Déploiement rapide, sans travaux lourds.</p>
+          </div>
+        </div>
+      </div>
+      <div class="adv-list">
+        <div class="adv-item">
+          <span class="adv-icon">🔧</span>
+          <div class="adv-text">
+            <h4>Faible coût de maintenance</h4>
+            <p>Composants remplaçables et accessibles. Aucun consommable médical. Coût total de possession optimisé pour les hôpitaux publics.</p>
+          </div>
+        </div>
+        <div class="adv-item">
+          <span class="adv-icon">📊</span>
+          <div class="adv-text">
+            <h4>Rapports cliniques complets</h4>
+            <p>Données structurées pour : sommeil, sécurité, respiration, alimentation, suivi Alzheimer. Exploitables par les équipes médicales et la direction.</p>
+          </div>
+        </div>
+        <div class="adv-item">
+          <span class="adv-icon">⚡</span>
+          <div class="adv-text">
+            <h4>IA en amélioration continue</h4>
+            <p>Le système apprend des comportements des patients et réduit progressivement les fausses alertes. Moins de fatigue des soignants, meilleure réactivité.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 5 — CAS D'USAGE SANTÉ
+  ══════════════════════════════════════════ -->
+  <div class="slide bg-dark" data-index="4">
+    <div class="bg-grid"></div>
+    <div class="slide-header" style="max-width:1100px;">
+      <div class="eyebrow">Secteur Santé · Hôpitaux Publics & Privés</div>
+      <h2 class="title">Cas d'<span>Usage Cliniques</span></h2>
+      <div class="divider divider-center"></div>
+    </div>
+    <div class="use-grid">
+      <div class="use-card c1">
+        <span class="use-icon">🚨</span>
+        <div class="use-title">Prévention des Chutes</div>
+        <ul class="use-list">
+          <li>Détection instantanée de chute patients</li>
+          <li>Alerte soignant en temps réel</li>
+          <li>Réduction du délai d'intervention</li>
+          <li>Suivi comportemental nocturne</li>
+        </ul>
+      </div>
+      <div class="use-card c2">
+        <span class="use-icon">🫀</span>
+        <div class="use-title">Monitoring Signes Vitaux</div>
+        <ul class="use-list">
+          <li>Fréquence cardiaque sans électrodes</li>
+          <li>Fréquence respiratoire en continu</li>
+          <li>Alerte en cas d'anomalie détectée</li>
+          <li>Historique exportable pour le dossier médical</li>
+        </ul>
+      </div>
+      <div class="use-card c3">
+        <span class="use-icon">👴</span>
+        <div class="use-title">Gériatrie & Long Séjour</div>
+        <ul class="use-list">
+          <li>Suivi patients Alzheimer / démence</li>
+          <li>Surveillance sorties de lit nocturnes</li>
+          <li>Analyse de la qualité du sommeil</li>
+          <li>Rapports pour les familles</li>
+        </ul>
+      </div>
+      <div class="use-card c4">
+        <span class="use-icon">🏥</span>
+        <div class="use-title">Réanimation & Soins Intensifs</div>
+        <ul class="use-list">
+          <li>Monitoring continu sans contact</li>
+          <li>Fonctionnement en obscurité totale</li>
+          <li>Détection de mouvements inhabituels</li>
+          <li>Tableau de bord multi-lits</li>
+        </ul>
+      </div>
+      <div class="use-card c5">
+        <span class="use-icon">🛡️</span>
+        <div class="use-title">Sécurité Hospitalière</div>
+        <ul class="use-list">
+          <li>Détection de présence non autorisée</li>
+          <li>Suivi des flux de personnel la nuit</li>
+          <li>Zones sensibles sous surveillance</li>
+          <li>Enregistrement des événements</li>
+        </ul>
+      </div>
+      <div class="use-card c6">
+        <span class="use-icon">📋</span>
+        <div class="use-title">Gestion Opérationnelle</div>
+        <ul class="use-list">
+          <li>Optimisation des rondes infirmières</li>
+          <li>Taux d'occupation par service</li>
+          <li>Données pour planification RH</li>
+          <li>Rapports de direction automatisés</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 6 — PLAN DE DÉPLOIEMENT (OVERVIEW)
+  ══════════════════════════════════════════ -->
+  <div class="slide bg-section" data-index="5">
+    <div class="bg-grid"></div>
+    <div class="slide-header" style="max-width:1100px;">
+      <div class="eyebrow">Écosystème · Déploiement au Sénégal</div>
+      <h2 class="title">Plan de <span>Déploiement</span> en 6 Phases</h2>
+      <div class="divider divider-center"></div>
+      <p style="font-size:14px;color:var(--text-muted);max-width:700px;margin:0 auto 8px;">
+        Un parcours structuré de l'alignement institutionnel jusqu'au passage à l'échelle nationale — réaliste en <strong style="color:var(--white);">12 à 24 mois</strong>, compressible à <strong style="color:var(--gold);">9–15 mois</strong> avec les bons partenariats.
+      </p>
+    </div>
+    <div class="timeline-track">
+      <div class="timeline-phase t1">
+        <div class="timeline-num">Phase 01</div>
+        <div class="timeline-bar"></div>
+        <div class="timeline-label">Alignement MSAS</div>
+        <div class="timeline-dur">1–2 mois</div>
+        <div class="overlap-note">M1–2</div>
+      </div>
+      <div class="timeline-connector">›</div>
+      <div class="timeline-phase t2">
+        <div class="timeline-num">Phase 02</div>
+        <div class="timeline-bar"></div>
+        <div class="timeline-label">Régulation DPM</div>
+        <div class="timeline-dur">3–6 mois</div>
+        <div class="overlap-note">M2–8</div>
+      </div>
+      <div class="timeline-connector">›</div>
+      <div class="timeline-phase t3">
+        <div class="timeline-num">Phase 03</div>
+        <div class="timeline-bar"></div>
+        <div class="timeline-label">Projet Pilote</div>
+        <div class="timeline-dur">3–6 mois</div>
+        <div class="overlap-note">M4–10</div>
+      </div>
+      <div class="timeline-connector">›</div>
+      <div class="timeline-phase t4">
+        <div class="timeline-num">Phase 04</div>
+        <div class="timeline-bar"></div>
+        <div class="timeline-label">Engagement KOL</div>
+        <div class="timeline-dur">2–4 mois</div>
+        <div class="overlap-note">M4–10</div>
+      </div>
+      <div class="timeline-connector">›</div>
+      <div class="timeline-phase t5">
+        <div class="timeline-num">Phase 05</div>
+        <div class="timeline-bar"></div>
+        <div class="timeline-label">Distribution</div>
+        <div class="timeline-dur">2–3 mois</div>
+        <div class="overlap-note">M7–10</div>
+      </div>
+      <div class="timeline-connector">›</div>
+      <div class="timeline-phase t6">
+        <div class="timeline-num">Phase 06</div>
+        <div class="timeline-bar"></div>
+        <div class="timeline-label">Passage à l'échelle</div>
+        <div class="timeline-dur">6–12 mois</div>
+        <div class="overlap-note">M10–24</div>
+      </div>
+    </div>
+    <div style="margin-top:28px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+      <span class="pill">✓ Pilote & révision réglementaire en parallèle</span>
+      <span class="pill gold">✓ KOL actifs dès le début du pilote</span>
+      <span class="pill">✓ Distribution démarrée pendant le pilote</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 7 — PHASE 1 : MSAS
+  ══════════════════════════════════════════ -->
+  <div class="slide bg-phase" data-index="6">
+    <div class="bg-grid"></div>
+    <div class="phase-header">
+      <div class="phase-num">01</div>
+      <div class="phase-info">
+        <h2>Alignement Institutionnel — <span style="color:var(--gold);">MSAS</span></h2>
+        <div class="phase-badge">⏱ 1–2 mois · Mois 1–2</div>
+      </div>
+    </div>
+    <div class="phase-content">
+      <div class="phase-block">
+        <h4>Actions Concrètes</h4>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p>Obtenir un <strong>rendez-vous officiel</strong> avec les directions techniques du MSAS (Direction de la Santé, Direction des Établissements de Santé)</p>
+        </div>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p>Présenter la <strong>proposition de valeur</strong> : solution de surveillance non intrusive, sans caméra, respectueuse de la dignité et de la confidentialité des patients</p>
+        </div>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p>Obtenir des <strong>lettres de soutien</strong> et des introductions aux hôpitaux partenaires potentiels</p>
+        </div>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p>Aligner sur les <strong>priorités nationales</strong> : vieillissement, sécurité des patients, numérisation du système de santé</p>
+        </div>
+      </div>
+      <div class="phase-block">
+        <h4>Axes de Positionnement</h4>
+        <div class="adv-item" style="border-left-color:var(--teal-light);">
+          <span class="adv-icon">🛡️</span>
+          <div class="adv-text">
+            <h4>Prévention des chutes</h4>
+            <p>Problème prioritaire en gériatrie et pour les patients hospitalisés longue durée — impact direct sur la morbi-mortalité.</p>
+          </div>
+        </div>
+        <div class="adv-item" style="border-left-color:var(--gold);margin-top:10px;">
+          <span class="adv-icon">🔒</span>
+          <div class="adv-text">
+            <h4>Innovation IA sans caméra</h4>
+            <p>Aucun risque pour la vie privée. Adapté aux sensibilités culturelles et religieuses du contexte sénégalais.</p>
+          </div>
+        </div>
+        <div class="success-box">
+          <p><strong>Output attendu :</strong> Endorsement politique du MSAS + introduction officielle aux hôpitaux pilotes</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 8 — PHASE 2 : RÉGULATION
+  ══════════════════════════════════════════ -->
+  <div class="slide bg-phase" data-index="7">
+    <div class="bg-grid"></div>
+    <div class="phase-header">
+      <div class="phase-num" style="color:#c0392b;opacity:0.3;">02</div>
+      <div class="phase-info">
+        <h2>Régulation — <span style="color:#ff8080;">DPM / ARP</span></h2>
+        <div class="phase-badge" style="background:rgba(192,57,43,0.1);border-color:rgba(192,57,43,0.3);color:#ff8080;">⏱ 3–6 mois · Mois 2–8</div>
+      </div>
+    </div>
+    <div class="phase-content">
+      <div class="phase-block">
+        <h4>Organismes Compétents</h4>
+        <div class="phase-action">
+          <div class="phase-action-dot" style="background:#ff8080;"></div>
+          <p><strong>Direction de la Pharmacie et du Médicament (DPM)</strong> — organisme principal pour la classification et l'autorisation des dispositifs médicaux au Sénégal</p>
+        </div>
+        <div class="phase-action">
+          <div class="phase-action-dot" style="background:#ff8080;"></div>
+          <p><strong>Autorité de Régulation Pharmaceutique (ARP)</strong> — si applicable selon l'évolution du cadre réglementaire</p>
+        </div>
+        <div class="phase-action">
+          <div class="phase-action-dot" style="background:var(--gold);"></div>
+          <p>S'appuyer sur un <strong>partenaire réglementaire local</strong> pour accélérer et sécuriser le processus</p>
+        </div>
+      </div>
+      <div class="phase-block">
+        <h4>Dossier à Préparer</h4>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p><strong>Classification du dispositif :</strong> dispositif médical, SaMD (Software as Medical Device) ou dispositif hybride</p>
+        </div>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p><strong>Documentation technique complète :</strong> spécifications, modes de fonctionnement, données de sécurité</p>
+        </div>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p><strong>Certifications internationales :</strong> marquage CE, ISO 13485 (systèmes de management qualité dispositifs médicaux) si disponible</p>
+        </div>
+        <div class="warning-box">
+          <p>⚠️ <strong>Point critique :</strong> Sans cette autorisation réglementaire, aucune adoption institutionnelle dans un hôpital public n'est possible. Cette phase est non-négociable.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 9 — PHASE 3 : PILOTE
+  ══════════════════════════════════════════ -->
+  <div class="slide bg-phase" data-index="8">
+    <div class="bg-grid"></div>
+    <div class="phase-header">
+      <div class="phase-num" style="color:var(--gold);opacity:0.3;">03</div>
+      <div class="phase-info">
+        <h2>Projet <span style="color:var(--gold);">Pilote Hospitalier</span></h2>
+        <div class="phase-badge">⏱ 3–6 mois · Mois 4–10 (parallèle phase 2)</div>
+      </div>
+    </div>
+    <div class="phase-content">
+      <div class="phase-block">
+        <h4>Sites Cibles — Hôpitaux Sénégalais</h4>
+        <div class="hospital-list">
+          <div class="hospital-item">
+            <span class="hospital-tag h-public">PUBLIC</span>
+            <span class="hospital-name">🏥 Hôpital Principal de Dakar</span>
+          </div>
+          <div class="hospital-item">
+            <span class="hospital-tag h-public">PUBLIC</span>
+            <span class="hospital-name">🏥 CHU de Fann</span>
+          </div>
+          <div class="hospital-item">
+            <span class="hospital-tag h-public">PUBLIC</span>
+            <span class="hospital-name">🏥 Hôpital Dalal Jamm</span>
+          </div>
+          <div class="hospital-item">
+            <span class="hospital-tag h-private">PRIVÉ</span>
+            <span class="hospital-name">🏨 Clinique Suma Assistance</span>
+          </div>
+          <div class="hospital-item">
+            <span class="hospital-tag h-private">PRIVÉ</span>
+            <span class="hospital-name">🏨 Clinique Madeleine</span>
+          </div>
+        </div>
+      </div>
+      <div class="phase-block">
+        <h4>Unités d'Installation Prioritaires</h4>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p><strong>Service de gériatrie :</strong> surveillance des patients âgés, prévention des chutes, suivi du sommeil</p>
+        </div>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p><strong>Réanimation / Soins intensifs :</strong> monitoring sans contact des paramètres vitaux</p>
+        </div>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p><strong>Hospitalisation longue durée :</strong> suivi comportemental, détection d'anomalies</p>
+        </div>
+        <div class="success-box">
+          <p><strong>Output attendu :</strong> Preuves cliniques & économiques issues de l'usage réel — la monnaie d'échange pour les bailleurs et le remboursement.</p>
+        </div>
+        <div style="margin-top:10px;" class="pill gold">🎯 Le pilote = preuve de valeur locale</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 10 — PHASE 4 & 5 : KOL + DISTRIBUTION
+  ══════════════════════════════════════════ -->
+  <div class="slide bg-phase" data-index="9">
+    <div class="bg-grid"></div>
+    <div class="slide-header left" style="max-width:1100px;">
+      <div class="eyebrow">Phases 04 & 05</div>
+      <h2 class="title">Leaders d'Opinion & <span>Distribution Locale</span></h2>
+      <div class="divider"></div>
+    </div>
+    <div class="phase-content">
+      <div class="phase-block">
+        <h4>Phase 04 — Engagement KOL <span style="font-size:10px;color:var(--text-muted);">(2–4 mois · M4–10)</span></h4>
+        <div class="stake-grid" style="grid-template-columns:1fr;gap:10px;margin-top:0;">
+          <div class="stake-card" style="padding:14px 16px;">
+            <div class="stake-role">Profil KOL 1</div>
+            <div class="stake-name">👨‍⚕️ Médecins & Spécialistes Influents</div>
+            <div class="stake-desc">Gériatres, internistes, réanimateurs — prescripteurs naturels de la solution dans leurs services.</div>
+          </div>
+          <div class="stake-card" style="padding:14px 16px;">
+            <div class="stake-role">Profil KOL 2</div>
+            <div class="stake-name">🎓 Professeurs Universitaires — UCAD</div>
+            <div class="stake-desc">Chercheurs et enseignants de la Faculté de Médecine de Dakar, crédibilisent scientifiquement le dispositif.</div>
+          </div>
+          <div class="stake-card" style="padding:14px 16px;">
+            <div class="stake-role">Profil KOL 3</div>
+            <div class="stake-name">🏥 Directeurs d'Hôpitaux</div>
+            <div class="stake-desc">Décideurs institutionnels, porteurs du plaidoyer auprès du MSAS et des structures d'achat public.</div>
+          </div>
+        </div>
+        <div class="success-box" style="margin-top:12px;">
+          <p><strong>Output :</strong> Recommandations, témoignages, validation scientifique → accélère l'adoption</p>
+        </div>
+      </div>
+      <div class="phase-block">
+        <h4>Phase 05 — Distribution <span style="font-size:10px;color:var(--text-muted);">(2–3 mois · M7–10)</span></h4>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p>Identifier un <strong>distributeur médical agréé</strong> au Sénégal avec réseau d'hôpitaux établi</p>
+        </div>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p>Identifier un <strong>intégrateur IT Santé</strong> capable de gérer l'installation et la configuration réseau</p>
+        </div>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p>Définir le modèle commercial : <strong>partenariat exclusif, joint-venture ou représentant local</strong></p>
+        </div>
+        <div class="phase-action">
+          <div class="phase-action-dot"></div>
+          <p>Mettre en place le réseau de <strong>maintenance, support technique et déploiement</strong> sur l'ensemble du territoire</p>
+        </div>
+        <div class="success-box">
+          <p><strong>Output :</strong> Capacité opérationnelle de distribution nationale — condition sine qua non du passage à l'échelle</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 11 — PHASE 6 : SCALE
+  ══════════════════════════════════════════ -->
+  <div class="slide bg-phase" data-index="10">
+    <div class="bg-grid"></div>
+    <div class="phase-header">
+      <div class="phase-num" style="color:#c0392b;opacity:0.25;">06</div>
+      <div class="phase-info">
+        <h2>Passage à <span style="color:var(--teal-light);">l'Échelle Nationale</span></h2>
+        <div class="phase-badge" style="background:rgba(44,123,229,0.1);border-color:rgba(44,123,229,0.3);color:#7eb5ff;">⏱ 6–12 mois · Mois 10–24</div>
+      </div>
+    </div>
+    <div class="scale-grid">
+      <div class="scale-card blue">
+        <div class="scale-card-title">🏛️ Couverture Maladie Universelle (CMU)</div>
+        <div class="scale-item">Engager la CMU pour l'intégration dans les mécanismes de remboursement</div>
+        <div class="scale-item">Positionnement : dispositif médical de surveillance préventive</div>
+        <div class="scale-item">Réduire le coût net pour les hôpitaux publics bénéficiaires</div>
+      </div>
+      <div class="scale-card green">
+        <div class="scale-card-title">🌍 Bailleurs & Partenaires de Développement</div>
+        <div class="scale-item">Banque Mondiale — programmes santé numérique Afrique</div>
+        <div class="scale-item">OMS — qualité des soins et sécurité des patients</div>
+        <div class="scale-item">ONG Santé — soutien aux établissements publics défavorisés</div>
+      </div>
+      <div class="scale-card gold">
+        <div class="scale-card-title">🏥 Extension du Réseau Hospitalier</div>
+        <div class="scale-item">Expansion aux hôpitaux régionaux (Saint-Louis, Thiès, Ziguinchor…)</div>
+        <div class="scale-item">Partenariats public-privé pour le financement de l'acquisition</div>
+        <div class="scale-item">Intégration dans les plans d'équipement hospitalier du MSAS</div>
+      </div>
+      <div class="scale-card purple">
+        <div class="scale-card-title">📡 Positionnement Stratégique</div>
+        <div class="scale-item">Sénégal comme <strong style="color:var(--white);">hub de référence</strong> pour la technologie mmWave en Afrique de l'Ouest</div>
+        <div class="scale-item">"Solution de santé publique innovante" — message pour bailleurs</div>
+        <div class="scale-item">Modèle réplicable vers d'autres pays de la sous-région</div>
+      </div>
+    </div>
+    <div class="success-box" style="max-width:1100px;margin-top:16px;">
+      <p><strong>Output :</strong> Déploiement national durable, intégration dans le système de remboursement, impact mesurable sur la qualité des soins au Sénégal</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 12 — CONCLUSION & APPEL À L'ACTION
+  ══════════════════════════════════════════ -->
+  <div class="slide bg-cover" data-index="11">
+    <div class="bg-grid"></div>
+    <div class="deco-circle" style="width:400px;height:400px;border:1px solid rgba(13,110,110,0.08);top:-80px;right:60px;"></div>
+
+    <div class="slide-header">
+      <div class="eyebrow">Conclusion</div>
+      <h2 class="title">Pourquoi <span>Agir Maintenant</span>&thinsp;?</h2>
+      <div class="divider divider-center"></div>
+    </div>
+    <div class="conclusion-grid">
+      <div class="concl-card">
+        <span class="concl-icon">🌍</span>
+        <div class="concl-title">Technologie adaptée au contexte</div>
+        <div class="concl-text">Zéro caméra, respect de la dignité et des sensibilités culturelles. Compatible avec les valeurs et les ressources du système de santé sénégalais.</div>
+      </div>
+      <div class="concl-card">
+        <span class="concl-icon">📈</span>
+        <div class="concl-title">Impact clinique immédiat</div>
+        <div class="concl-text">Réduction des chutes, amélioration de la réactivité soignante, monitoring continu sans surcharge humaine — des bénéfices mesurables dès le pilote.</div>
+      </div>
+      <div class="concl-card">
+        <span class="concl-icon">🤝</span>
+        <div class="concl-title">Partenariat stratégique durable</div>
+        <div class="concl-text">Un déploiement soutenu par les bailleurs internationaux (Banque Mondiale, OMS) et intégrable dans la CMU pour une viabilité à long terme.</div>
+      </div>
+    </div>
+    <div class="cta-box">
+      <div class="cta-text">
+        <h3>Prochaine étape : Réunion officielle avec le MSAS</h3>
+        <p>Démarrer Phase 1 · Alignement institutionnel · Durée : 1–2 mois</p>
+      </div>
+      <button class="cta-btn">📅 Planifier la réunion</button>
+    </div>
+
+  </div>
+
+</div><!-- /deck -->
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+  let animating = false;
+
+  // Build dots
+  const dotsContainer = document.getElementById('slideDots');
+  slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'slide-dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => goTo(i);
+    dotsContainer.appendChild(dot);
+  });
+
+  function updateUI() {
+    document.getElementById('slideCounter').textContent = `${current + 1} / ${total}`;
+    document.getElementById('prevBtn').disabled = current === 0;
+    document.getElementById('nextBtn').disabled = current === total - 1;
+    document.getElementById('progressBar').style.width = `${((current + 1) / total) * 100}%`;
+    document.querySelectorAll('.slide-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+  }
+
+  function goTo(index) {
+    if (animating || index === current || index < 0 || index >= total) return;
+    animating = true;
+    const prev = slides[current];
+    const next = slides[index];
+    prev.classList.add('exit');
+    setTimeout(() => {
+      prev.classList.remove('active', 'exit');
+      next.classList.add('active');
+      current = index;
+      updateUI();
+      setTimeout(() => { animating = false; }, 100);
+    }, 400);
+  }
+
+  function changeSlide(dir) { goTo(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changeSlide(-1);
+  });
+
+  // Swipe support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) changeSlide(diff > 0 ? 1 : -1);
+  });
+
+  updateUI();
+</script>
+</body>
+</html>

@@ -955,6 +955,109 @@
     position: absolute; left: 0;
     color: var(--gold);
   }
+
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+
+/* Fix body scroll */
+body {
+  min-height: 100vh !important;
+  overflow-x: hidden !important;
+}
+
+/* TABLETTE */
+@media (max-width: 1024px) {
+  .cover-content,
+  .two-col,
+  .two-col-wide,
+  .phase-content,
+  .scale-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px;
+  }
+
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .use-grid,
+  .stake-grid,
+  .conclusion-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  h1.display { font-size: 48px; }
+  h2.title { font-size: 36px; }
+}
+
+/* MOBILE */
+@media (max-width: 640px) {
+
+  .slide {
+    padding: 24px 16px !important;
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav {
+    bottom: 10px;
+    padding: 6px 14px;
+  }
+
+  .kbd-hint { display: none; }
+
+  .brand-mark {
+    left: 12px;
+    top: 12px;
+  }
+
+  h1.display {
+    font-size: 34px;
+    line-height: 1.2;
+  }
+
+  h2.title { font-size: 26px; }
+  h3.sub-title { font-size: 20px; }
+
+  p.lead { font-size: 14px; }
+
+  .features-grid,
+  .use-grid,
+  .stake-grid,
+  .conclusion-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cover-meta {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .cta-box {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .phase-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .phase-num { font-size: 48px; }
+
+  .timeline-track {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .timeline-connector {
+    display: none;
+  }
+}
+
 </style>
 </head>
 <body>
